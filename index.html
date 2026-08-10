@@ -19,17 +19,63 @@
   html,body{
     margin:0;padding:0;height:100%;
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    background:var(--panel);
+    background:radial-gradient(circle at 20% 20%, #2a0f1c 0%, #120a14 45%, #05060a 100%);
     overflow:hidden;
+    position:relative;
   }
+
+  /* ===== unoszące się zdjęcia w tle ===== */
+  .bg-float-layer{
+    position:fixed;
+    inset:0;
+    overflow:hidden;
+    z-index:0;
+    pointer-events:none;
+  }
+  .float-photo{
+    position:absolute;
+    bottom:-30vh;
+    border-radius:14px;
+    overflow:hidden;
+    box-shadow:0 10px 24px rgba(0,0,0,0.5);
+    animation-name:floatUp;
+    animation-timing-function:linear;
+    animation-iteration-count:infinite;
+    opacity:0.85;
+  }
+  .float-photo img{
+    display:block;
+    width:100%;height:100%;
+    object-fit:cover;
+  }
+  .float-photo.tint-red img{ filter:saturate(2.6) sepia(0.5) hue-rotate(-45deg) brightness(0.95); }
+  .float-photo.tint-green img{ filter:saturate(2.4) sepia(0.5) hue-rotate(65deg) brightness(0.95); }
+  .float-photo::after{
+    content:'';
+    position:absolute;inset:0;
+    mix-blend-mode:color;
+  }
+  .float-photo.tint-red::after{ background:#FD3B4E; }
+  .float-photo.tint-green::after{ background:#3ED966; }
+  @keyframes floatUp{
+    0%{ transform:translate(0,0) rotate(var(--r0,0deg)); }
+    50%{ transform:translate(var(--dx,20px), -60vh) rotate(var(--r1,10deg)); }
+    100%{ transform:translate(0, -130vh) rotate(var(--r0,0deg)); }
+  }
+
   .app{
     display:flex;flex-direction:column;
-    height:100vh;
-    max-width:480px;
-    margin:0 auto;
+    height:92vh;
+    max-height:900px;
+    width:100%;
+    max-width:420px;
+    margin:4vh auto 0;
     background:var(--bg);
     position:relative;
-    box-shadow:var(--shadow);
+    z-index:2;
+    border-radius:28px;
+    overflow:hidden;
+    box-shadow:0 25px 70px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06);
   }
   header{
     display:flex;align-items:center;justify-content:space-between;
@@ -231,6 +277,8 @@
 </style>
 </head>
 <body>
+
+<div class="bg-float-layer" id="bgFloat"></div>
 
 <div class="app">
   <header>
@@ -491,6 +539,39 @@ function showEnd(){
 
 renderDeck();
 updateProgress();
+
+/* ===== unoszące się zdjęcia w tle: losowo czerwone lub zielone, wolno lecą w górę ===== */
+function initFloatingBg(){
+  const layer = document.getElementById('bgFloat');
+  const COUNT = 16;
+  for(let i=0;i<COUNT;i++){
+    const n = Math.floor(Math.random()*TOTAL_PHOTOS)+1;
+    const el = document.createElement('div');
+    const tint = Math.random() < 0.5 ? 'tint-red' : 'tint-green';
+    el.className = `float-photo ${tint}`;
+
+    const size = 60 + Math.random()*90; // 60-150px
+    el.style.width = size+'px';
+    el.style.height = (size*1.3)+'px';
+    el.style.left = (Math.random()*100)+'vw';
+
+    const duration = 26 + Math.random()*28; // 26-54s, wolno
+    const delay = -Math.random()*duration; // start w losowym momencie
+    el.style.animationDuration = duration+'s';
+    el.style.animationDelay = delay+'s';
+    el.style.setProperty('--dx', (Math.random()*80-40)+'px');
+    el.style.setProperty('--r0', (Math.random()*20-10)+'deg');
+    el.style.setProperty('--r1', (Math.random()*30-15)+'deg');
+
+    const img = document.createElement('img');
+    img.src = `Z${n}.jpg`;
+    img.onerror = ()=> el.remove();
+    el.appendChild(img);
+
+    layer.appendChild(el);
+  }
+}
+initFloatingBg();
 </script>
 </body>
 </html>
