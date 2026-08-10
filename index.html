@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gabrysinder</title>
+<style>
+  :root{
+    --tinder-red: #FD5068;
+    --tinder-red2: #FF7854;
+    --tinder-green: #4CD964;
+    --bg: #FFFFFF;
+    --panel: #F7F7F9;
+    --text: #1B1B1F;
+    --muted: #8A8A93;
+    --shadow: 0 10px 30px rgba(0,0,0,0.15);
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;height:100%;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--panel);
+    overflow:hidden;
+  }
+  .app{
+    display:flex;flex-direction:column;
+    height:100vh;
+    max-width:480px;
+    margin:0 auto;
+    background:var(--bg);
+    position:relative;
+    box-shadow:var(--shadow);
+  }
+  header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 18px 8px;
+    flex-shrink:0;
+  }
+  .icon-btn{
+    width:36px;height:36px;
+    border-radius:50%;
+    border:none;
+    background:transparent;
+    display:flex;align-items:center;justify-content:center;
+    color:#c6c6c9;
+    font-size:20px;
+    cursor:default;
+  }
+  .icon-btn.profile{ color:#b9b9be; }
+  .icon-btn.chat{ color:var(--tinder-red); }
+  .logo{
+    font-size:28px;
+    font-weight:800;
+    letter-spacing:-0.5px;
+    background:linear-gradient(45deg, var(--tinder-red), var(--tinder-red2));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .deck-wrap{
+    flex:1;
+    position:relative;
+    padding:10px 16px 0;
+    min-height:0;
+  }
+  .deck{
+    position:relative;
+    width:100%;
+    height:100%;
+  }
+  .card{
+    position:absolute;
+    inset:0;
+    border-radius:16px;
+    overflow:hidden;
+    background:#222;
+    box-shadow:var(--shadow);
+    will-change:transform;
+    transition:transform 0.35s ease, opacity 0.35s ease;
+    user-select:none;
+    -webkit-user-select:none;
+    touch-action:none;
+  }
+  .card img{
+    width:100%;height:100%;
+    object-fit:cover;
+    display:block;
+    pointer-events:none;
+  }
+  .card .fallback{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    flex-direction:column;
+    color:#eee;
+    background:linear-gradient(135deg,#333,#111);
+    text-align:center;
+    padding:20px;
+    font-size:14px;
+  }
+  .card .fallback b{ font-size:18px; margin-bottom:6px; }
+  .card .info{
+    position:absolute;
+    left:0;right:0;bottom:0;
+    padding:60px 18px 20px;
+    background:linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.5) 55%, transparent);
+    color:#fff;
+    pointer-events:none;
+  }
+  .card .bio{
+    font-size:15px;
+    line-height:1.4;
+    font-weight:600;
+    opacity:0.95;
+  }
+  .card .dots{
+    position:absolute;
+    top:10px;left:10px;right:10px;
+    display:flex;
+    gap:4px;
+    pointer-events:none;
+  }
+  .card .dots span{
+    flex:1;
+    height:3px;
+    border-radius:3px;
+    background:rgba(255,255,255,0.35);
+  }
+  .card .dots span.active{ background:rgba(255,255,255,0.95); }
+  .stamp{
+    position:absolute;
+    top:36px;
+    padding:8px 14px;
+    border:4px solid;
+    border-radius:10px;
+    font-weight:900;
+    font-size:28px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    opacity:0;
+    transform:rotate(-20deg);
+    pointer-events:none;
+  }
+  .stamp.like{ right:24px; border-color:var(--tinder-green); color:var(--tinder-green); transform:rotate(-20deg);}
+  .stamp.nope{ left:24px; border-color:var(--tinder-red); color:var(--tinder-red); transform:rotate(20deg);}
+
+  .controls{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    padding:16px 16px 24px;
+    flex-shrink:0;
+  }
+  .btn{
+    border-radius:50%;
+    border:none;
+    background:#fff;
+    box-shadow:0 6px 16px rgba(0,0,0,0.15);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    transition:transform 0.15s ease;
+  }
+  .btn:active{ transform:scale(0.85); }
+  .btn.rewind{ width:44px;height:44px; font-size:17px; color:#ffb648; }
+  .btn.nope{ width:58px;height:58px; font-size:26px; color:var(--tinder-red); }
+  .btn.star{ width:44px;height:44px; font-size:17px; color:#59c9ff; }
+  .btn.like{ width:58px;height:58px; font-size:26px; color:var(--tinder-green); }
+  .btn.boost{ width:44px;height:44px; font-size:17px; color:#c95bff; }
+
+  .counter{
+    position:absolute;
+    top:14px;left:0;right:0;
+    display:flex;
+    justify-content:center;
+    gap:4px;
+    padding:0 20px;
+    pointer-events:none;
+  }
+  .counter .seg{
+    flex:1;
+    max-width:26px;
+    height:3px;
+    border-radius:3px;
+    background:rgba(0,0,0,0.15);
+  }
+  .counter .seg.done{ background:var(--tinder-red); }
+
+  .end-screen{
+    position:absolute;
+    inset:0;
+    background:linear-gradient(160deg, var(--tinder-red) 0%, var(--tinder-red2) 100%);
+    color:#fff;
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:40px;
+    z-index:50;
+  }
+  .end-screen.show{ display:flex; }
+  .end-screen .emoji{ font-size:64px; margin-bottom:10px; }
+  .end-screen h1{
+    font-size:32px;
+    margin:0 0 12px;
+    font-weight:800;
+  }
+  .end-screen p{
+    font-size:17px;
+    line-height:1.5;
+    max-width:340px;
+    opacity:0.95;
+    margin:0;
+  }
+  .end-screen .hearts{
+    margin-top:26px;
+    font-size:22px;
+    letter-spacing:4px;
+  }
+
+  .swipe-summary{
+    position:absolute;
+    top:14px; right:16px;
+    font-size:12px;
+    color:var(--muted);
+    background:rgba(255,255,255,0.9);
+    padding:4px 8px;
+    border-radius:20px;
+    display:none;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <button class="icon-btn profile">☰</button>
+    <div class="logo">gabrysinder</div>
+    <button class="icon-btn chat">💬</button>
+  </header>
+
+  <div class="counter" id="counter"></div>
+
+  <div class="deck-wrap">
+    <div class="deck" id="deck"></div>
+
+    <div class="end-screen" id="endScreen">
+      <div class="emoji">🎉🥳🎂</div>
+      <h1>Wszystkiego najlepszego, Gabryś!</h1>
+      <p>Przeleciałeś przez wszystkie 30 zdjęć. Koniec swipe'owania — dalej się nie da.<br><br>Bardzo Cię lubimy i mamy nadzieję, że ten rok będzie najlepszy ze wszystkich. 🎈</p>
+      <div class="hearts">❤️🧡💛</div>
+    </div>
+  </div>
+
+  <div class="controls" id="controls">
+    <button class="btn rewind" title="Cofnij">⟲</button>
+    <button class="btn nope" id="btnNope" title="Nie">✕</button>
+    <button class="btn star" title="Super like">★</button>
+    <button class="btn like" id="btnLike" title="Tak">♥</button>
+    <button class="btn boost" title="Boost">⚡</button>
+  </div>
+</div>
+
+
+
+function bioFor(i){
+  const custom = BIOS[i] && BIOS[i].trim();
+  if(custom) return custom;
+  return DEFAULT_BIOS[i % DEFAULT_BIOS.length];
+}
+
+const deck = document.getElementById('deck');
+const counterEl = document.getElementById('counter');
+const endScreen = document.getElementById('endScreen');
+const controls = document.getElementById('controls');
+const btnLike = document.getElementById('btnLike');
+const btnNope = document.getElementById('btnNope');
+
+let cards = [];
+let topIndex = TOTAL_PHOTOS - 1; // index in `cards` array of topmost card
+let swipedCount = 0;
+
+// build progress bar
+for(let i=0;i<TOTAL_PHOTOS;i++){
+  const seg = document.createElement('div');
+  seg.className = 'seg';
+  seg.dataset.i = i;
+  counterEl.appendChild(seg);
+}
+function updateProgress(){
+  const segs = counterEl.querySelectorAll('.seg');
+  segs.forEach((s,i)=>{
+    s.classList.toggle('done', i < swipedCount);
+  });
+}
+
+function buildCard(n){
+  // n = photo number 1..30
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.dataset.n = n;
+
+  const img = document.createElement('img');
+  img.src = `Z${n}.jpg`;
+  img.alt = `Zdjęcie ${n}`;
+  img.onerror = function(){
+    img.remove();
+    const fb = document.createElement('div');
+    fb.className = 'fallback';
+    fb.innerHTML = `<b>Brakuje pliku Z${n}.jpg</b>Wrzuć zdjęcie o tej nazwie<br>do folderu ze stroną.`;
+    card.prepend(fb);
+  };
+  card.appendChild(img);
+
+  const dots = document.createElement('div');
+  dots.className = 'dots';
+  dots.innerHTML = '<span class="active"></span>';
+  card.appendChild(dots);
+
+  const info = document.createElement('div');
+  info.className = 'info';
+  info.innerHTML = `<div class="bio">${bioFor(n-1)}</div>`;
+  card.appendChild(info);
+
+  const likeStamp = document.createElement('div');
+  likeStamp.className = 'stamp like';
+  likeStamp.textContent = 'LIKE';
+  card.appendChild(likeStamp);
+
+  const nopeStamp = document.createElement('div');
+  nopeStamp.className = 'stamp nope';
+  nopeStamp.textContent = 'NOPE';
+  card.appendChild(nopeStamp);
+
+  return card;
+}
+
+function renderDeck(){
+  deck.innerHTML = '';
+  cards = [];
+  // create all cards, photo 1 on top visually is handled by z-index (last child on top)
+  for(let n=1;n<=TOTAL_PHOTOS;n++){
+    const c = buildCard(n);
+    c.style.zIndex = n;
+    deck.appendChild(c);
+    cards.push(c);
+  }
+  attachInteractions();
+}
+
+function attachInteractions(){
+  cards.forEach((card)=>{
+    let startX=0, startY=0, curX=0, curY=0, dragging=false;
+
+    const likeStamp = card.querySelector('.stamp.like');
+    const nopeStamp = card.querySelector('.stamp.nope');
+
+    function isTop(){
+      // top card = highest remaining card still in DOM with pointer-events
+      const remaining = Array.from(deck.children);
+      return remaining[remaining.length-1] === card;
+    }
+
+    function pointerDown(e){
+      if(!isTop()) return;
+      dragging = true;
+      const pt = e.touches ? e.touches[0] : e;
+      startX = pt.clientX; startY = pt.clientY;
+      card.style.transition = 'none';
+    }
+    function pointerMove(e){
+      if(!dragging) return;
+      const pt = e.touches ? e.touches[0] : e;
+      curX = pt.clientX - startX;
+      curY = pt.clientY - startY;
+      const rot = curX / 18;
+      card.style.transform = `translate(${curX}px, ${curY}px) rotate(${rot}deg)`;
+      const opacity = Math.min(Math.abs(curX)/100, 1);
+      if(curX > 0){
+        likeStamp.style.opacity = opacity;
+        nopeStamp.style.opacity = 0;
+      } else {
+        nopeStamp.style.opacity = opacity;
+        likeStamp.style.opacity = 0;
+      }
+    }
+    function pointerUp(){
+      if(!dragging) return;
+      dragging = false;
+      card.style.transition = 'transform 0.35s ease, opacity 0.35s ease';
+      if(Math.abs(curX) > 100){
+        finishSwipe(card, curX > 0 ? 1 : -1);
+      } else {
+        card.style.transform = 'translate(0,0) rotate(0)';
+        likeStamp.style.opacity = 0;
+        nopeStamp.style.opacity = 0;
+      }
+      curX = 0; curY = 0;
+    }
+
+    card.addEventListener('mousedown', pointerDown);
+    window.addEventListener('mousemove', pointerMove);
+    window.addEventListener('mouseup', pointerUp);
+    card.addEventListener('touchstart', pointerDown, {passive:true});
+    card.addEventListener('touchmove', pointerMove, {passive:true});
+    card.addEventListener('touchend', pointerUp);
+  });
+}
+
+function finishSwipe(card, direction){
+  card.style.transform = `translate(${direction*600}px, ${-40}px) rotate(${direction*30}deg)`;
+  card.style.opacity = '0';
+  swipedCount++;
+  updateProgress();
+  setTimeout(()=>{
+    card.remove();
+    if(swipedCount >= TOTAL_PHOTOS){
+      showEnd();
+    }
+  }, 320);
+}
+
+function topCard(){
+  const remaining = Array.from(deck.children);
+  return remaining[remaining.length-1];
+}
+
+function buttonSwipe(direction){
+  if(swipedCount >= TOTAL_PHOTOS) return;
+  const card = topCard();
+  if(!card) return;
+  card.style.transition = 'transform 0.35s ease, opacity 0.35s ease';
+  const stamp = card.querySelector(direction>0 ? '.stamp.like' : '.stamp.nope');
+  stamp.style.opacity = 1;
+  finishSwipe(card, direction);
+}
+
+btnLike.addEventListener('click', ()=>buttonSwipe(1));
+btnNope.addEventListener('click', ()=>buttonSwipe(-1));
+
+function showEnd(){
+  endScreen.classList.add('show');
+  controls.style.display = 'none';
+}
+
+renderDeck();
+updateProgress();
+</script>
+</body>
+</html>
