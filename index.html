@@ -261,7 +261,58 @@
   </div>
 </div>
 
+<script>
+/* ==========================================================
+   GABRYSINDER — lokalny żart Tinder dla Gabrysia
+   Zdjęcia: pliki Z1.jpg ... Z30.jpg w TYM SAMYM folderze co ten plik HTML.
+   Opisy (bio): edytuj tablicę BIOS poniżej — po jednym opisie na zdjęcie,
+   w kolejności Z1, Z2, Z3... Możesz zostawić puste "" jeśli nie masz pomysłu,
+   wtedy poleci losowy głupi opis z DEFAULT_BIOS.
+   ========================================================== */
 
+const TOTAL_PHOTOS = 30;
+
+// 👉 TU WPISZ SWOJE OPISY (jeden string na zdjęcie, w kolejności Z1..Z30).
+// Zostaw "" żeby użyć losowego domyślnego opisu.
+const BIOS = [
+  "", "", "", "", "", "", "", "", "", "",
+  "", "", "", "", "", "", "", "", "", "",
+  "", "", "", "", "", "", "", "", "", ""
+];
+
+// Domyślne głupie opisy — losowane gdy BIOS[i] jest puste
+const DEFAULT_BIOS = [
+  "lubi placki ziemniaczane bardziej niż ludzi",
+  "zawodowy szukacz pilota od TV",
+  "w wolnym czasie liczy kafelki na suficie",
+  "ekspert od parkowania pod krzywym kątem",
+  "jego róża życia to schabowy",
+  "wielokrotny finalista konkursu na najgłośniejsze ziewanie",
+  "potrafi zasnąć w każdej pozycji, nawet stojąc",
+  "hobby: otwieranie lodówki i patrzenie",
+  "ambicja: kiedyś zjeść cały tort sam",
+  "motto: 'zaraz wstaję' (nie wstaje)",
+  "kolekcjoner niedopasowanych skarpetek",
+  "zna się na wszystkim, sprawdzone przez nikogo",
+  "czarny pas w przynoszeniu jedzenia do łóżka",
+  "życiowy cel: znaleźć pilota bez klikania na fotel",
+  "był, widział, zapomniał o co chodziło",
+  "pro w wygrywaniu kłótni z kotem",
+  "kiedyś prawie wstał wcześniej niż w południe",
+  "jego CV to lista seriali obejrzanych w noc przed egzaminem",
+  "profesjonalny odkładacz spraw na jutro",
+  "zna 3 przepisy: kanapka, jajecznica i 'zamawiam'",
+  "rekordzista w chodzeniu do lodówki bez celu",
+  "fanklub liczy dokładnie tyle osób co go zna",
+  "potrafi się zgubić we własnym mieszkaniu",
+  "w innym życiu byłby zawodowym drzemaczem",
+  "jego alarm to sugestia, nie rozkaz",
+  "master ceremonii przy grillu, zero umiejętności kulinarnych",
+  "gdyby lenistwo było sportem, miałby złoty medal",
+  "jego plan na wieczór: 'zobaczymy'",
+  "zna wszystkie skróty klawiszowe, oprócz Ctrl+S do życia",
+  "wieczny kandydat na 'zaraz się za to biorę'"
+];
 
 function bioFor(i){
   const custom = BIOS[i] && BIOS[i].trim();
@@ -316,11 +367,6 @@ function buildCard(n){
   dots.className = 'dots';
   dots.innerHTML = '<span class="active"></span>';
   card.appendChild(dots);
-
-  const info = document.createElement('div');
-  info.className = 'info';
-  info.innerHTML = `<div class="bio">${bioFor(n-1)}</div>`;
-  card.appendChild(info);
 
   const likeStamp = document.createElement('div');
   likeStamp.className = 'stamp like';
