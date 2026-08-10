@@ -199,14 +199,15 @@
   }
   .btn{
     border-radius:50%;
-    border:none;
-    background:#fff;
-    box-shadow:0 6px 16px rgba(0,0,0,0.15);
+    border:1.5px solid rgba(255,255,255,0.18);
+    background:rgba(255,255,255,0.06);
+    backdrop-filter:blur(6px);
+    box-shadow:none;
     display:flex;align-items:center;justify-content:center;
     cursor:pointer;
-    transition:transform 0.15s ease;
+    transition:transform 0.15s ease, background 0.15s ease;
   }
-  .btn:active{ transform:scale(0.85); }
+  .btn:active{ transform:scale(0.85); background:rgba(255,255,255,0.14); }
   .btn.rewind{ width:44px;height:44px; font-size:17px; color:#ffb648; }
   .btn.nope{ width:58px;height:58px; font-size:26px; color:var(--tinder-red); }
   .btn.star{ width:44px;height:44px; font-size:17px; color:#59c9ff; }
