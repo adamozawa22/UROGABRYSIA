@@ -1,578 +1,412 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gabrysinder</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ściana tekstu</title>
 <style>
-  :root{
-    --tinder-red: #FD5068;
-    --tinder-red2: #FF7854;
-    --tinder-green: #4CD964;
-    --bg: #FFFFFF;
-    --panel: #F7F7F9;
-    --text: #1B1B1F;
-    --muted: #8A8A93;
-    --shadow: 0 10px 30px rgba(0,0,0,0.15);
-  }
-  *{box-sizing:border-box;}
-  html,body{
-    margin:0;padding:0;height:100%;
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    background:radial-gradient(circle at 20% 20%, #2a0f1c 0%, #120a14 45%, #05060a 100%);
-    overflow:hidden;
-    position:relative;
-  }
-
-  /* ===== unoszące się zdjęcia w tle ===== */
-  .bg-float-layer{
-    position:fixed;
-    inset:0;
-    overflow:hidden;
-    z-index:0;
-    pointer-events:none;
-  }
-  .float-photo{
-    position:absolute;
-    bottom:-30vh;
-    border-radius:14px;
-    overflow:hidden;
-    box-shadow:0 10px 24px rgba(0,0,0,0.5);
-    animation-name:floatUp;
-    animation-timing-function:linear;
-    animation-iteration-count:infinite;
-    opacity:0.85;
-  }
-  .float-photo img{
-    display:block;
-    width:100%;height:100%;
-    object-fit:cover;
-  }
-  .float-photo.tint-red img{ filter:saturate(2.6) sepia(0.5) hue-rotate(-45deg) brightness(0.95); }
-  .float-photo.tint-green img{ filter:saturate(2.4) sepia(0.5) hue-rotate(65deg) brightness(0.95); }
-  .float-photo::after{
-    content:'';
-    position:absolute;inset:0;
-    mix-blend-mode:color;
-  }
-  .float-photo.tint-red::after{ background:#FD3B4E; }
-  .float-photo.tint-green::after{ background:#3ED966; }
-  @keyframes floatUp{
-    0%{ transform:translate(0,0) rotate(var(--r0,0deg)); }
-    50%{ transform:translate(var(--dx,20px), -60vh) rotate(var(--r1,10deg)); }
-    100%{ transform:translate(0, -130vh) rotate(var(--r0,0deg)); }
-  }
-
-  .app{
-    display:flex;flex-direction:column;
-    height:92vh;
-    max-height:900px;
-    width:100%;
-    max-width:420px;
-    margin:4vh auto 0;
-    background:var(--bg);
-    position:relative;
-    z-index:2;
-    border-radius:28px;
-    overflow:hidden;
-    box-shadow:0 25px 70px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06);
-  }
-  header{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:14px 18px 8px;
-    flex-shrink:0;
-  }
-  .icon-btn{
-    width:36px;height:36px;
-    border-radius:50%;
-    border:none;
-    background:transparent;
-    display:flex;align-items:center;justify-content:center;
-    color:#c6c6c9;
-    font-size:20px;
-    cursor:default;
-  }
-  .icon-btn.profile{ color:#b9b9be; }
-  .icon-btn.chat{ color:var(--tinder-red); }
-  .logo{
-    font-size:28px;
-    font-weight:800;
-    letter-spacing:-0.5px;
-    background:linear-gradient(45deg, var(--tinder-red), var(--tinder-red2));
-    -webkit-background-clip:text;
-    background-clip:text;
-    color:transparent;
-  }
-  .deck-wrap{
-    flex:1;
-    position:relative;
-    padding:10px 16px 0;
-    min-height:0;
-  }
-  .deck{
-    position:relative;
-    width:100%;
-    height:100%;
-  }
-  .card{
-    position:absolute;
-    inset:0;
-    border-radius:16px;
-    overflow:hidden;
-    background:#222;
-    box-shadow:var(--shadow);
-    will-change:transform;
-    transition:transform 0.35s ease, opacity 0.35s ease;
-    user-select:none;
-    -webkit-user-select:none;
-    touch-action:none;
-  }
-  .card img{
-    width:100%;height:100%;
-    object-fit:cover;
-    display:block;
-    pointer-events:none;
-  }
-  .card .fallback{
-    position:absolute;inset:0;
-    display:flex;align-items:center;justify-content:center;
-    flex-direction:column;
-    color:#eee;
-    background:linear-gradient(135deg,#333,#111);
-    text-align:center;
-    padding:20px;
-    font-size:14px;
-  }
-  .card .fallback b{ font-size:18px; margin-bottom:6px; }
-  .card .info{
-    position:absolute;
-    left:0;right:0;bottom:0;
-    padding:60px 18px 20px;
-    background:linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.5) 55%, transparent);
-    color:#fff;
-    pointer-events:none;
-  }
-  .card .bio{
-    font-size:15px;
-    line-height:1.4;
-    font-weight:600;
-    opacity:0.95;
-  }
-  .card .dots{
-    position:absolute;
-    top:10px;left:10px;right:10px;
-    display:flex;
-    gap:4px;
-    pointer-events:none;
-  }
-  .card .dots span{
-    flex:1;
-    height:3px;
-    border-radius:3px;
-    background:rgba(255,255,255,0.35);
-  }
-  .card .dots span.active{ background:rgba(255,255,255,0.95); }
-  .stamp{
-    position:absolute;
-    top:36px;
-    padding:8px 14px;
-    border:4px solid;
-    border-radius:10px;
-    font-weight:900;
-    font-size:28px;
-    letter-spacing:2px;
-    text-transform:uppercase;
-    opacity:0;
-    transform:rotate(-20deg);
-    pointer-events:none;
-  }
-  .stamp.like{ right:24px; border-color:var(--tinder-green); color:var(--tinder-green); transform:rotate(-20deg);}
-  .stamp.nope{ left:24px; border-color:var(--tinder-red); color:var(--tinder-red); transform:rotate(20deg);}
-
-  .controls{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:14px;
-    padding:16px 16px 24px;
-    flex-shrink:0;
-  }
-  .btn{
-    border-radius:50%;
-    border:1.5px solid rgba(255,255,255,0.18);
-    background:rgba(255,255,255,0.06);
-    backdrop-filter:blur(6px);
-    box-shadow:none;
-    display:flex;align-items:center;justify-content:center;
-    cursor:pointer;
-    transition:transform 0.15s ease, background 0.15s ease;
-  }
-  .btn:active{ transform:scale(0.85); background:rgba(255,255,255,0.14); }
-  .btn.rewind{ width:44px;height:44px; font-size:17px; color:#ffb648; }
-  .btn.nope{ width:58px;height:58px; font-size:26px; color:var(--tinder-red); }
-  .btn.star{ width:44px;height:44px; font-size:17px; color:#59c9ff; }
-  .btn.like{ width:58px;height:58px; font-size:26px; color:var(--tinder-green); }
-  .btn.boost{ width:44px;height:44px; font-size:17px; color:#c95bff; }
-
-  .counter{
-    position:absolute;
-    top:14px;left:0;right:0;
-    display:flex;
-    justify-content:center;
-    gap:4px;
-    padding:0 20px;
-    pointer-events:none;
-  }
-  .counter .seg{
-    flex:1;
-    max-width:26px;
-    height:3px;
-    border-radius:3px;
-    background:rgba(0,0,0,0.15);
-  }
-  .counter .seg.done{ background:var(--tinder-red); }
-
-  .end-screen{
-    position:absolute;
-    inset:0;
-    background:linear-gradient(160deg, var(--tinder-red) 0%, var(--tinder-red2) 100%);
-    color:#fff;
-    display:none;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
-    padding:40px;
-    z-index:50;
-  }
-  .end-screen.show{ display:flex; }
-  .end-screen .emoji{ font-size:64px; margin-bottom:10px; }
-  .end-screen h1{
-    font-size:32px;
-    margin:0 0 12px;
-    font-weight:800;
-  }
-  .end-screen p{
-    font-size:17px;
-    line-height:1.5;
-    max-width:340px;
-    opacity:0.95;
-    margin:0;
-  }
-  .end-screen .hearts{
-    margin-top:26px;
-    font-size:22px;
-    letter-spacing:4px;
-  }
-
-  .swipe-summary{
-    position:absolute;
-    top:14px; right:16px;
-    font-size:12px;
-    color:var(--muted);
-    background:rgba(255,255,255,0.9);
-    padding:4px 8px;
-    border-radius:20px;
-    display:none;
-  }
+body {
+  margin: 0;
+  background: #000;
+  color: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+}
+main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 28px 24px 80px;
+  font-size: 16px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 </style>
 </head>
 <body>
+<main>﻿Wiadomości i połączenia są zabezpieczone pełnym szyfrowaniem. Tylko uczestnicy tego czatu mogą je odczytywać, odsłuchiwać i udostępniać. Dowiedz się więcej
 
-<div class="bg-float-layer" id="bgFloat"></div>
+Wiciu Danowski
 
-<div class="app">
-  <header>
-    <button class="icon-btn profile">☰</button>
-    <div class="logo">gabrysinder</div>
-    <button class="icon-btn chat">💬</button>
-  </header>
+Wracam do domu
 
-  <div class="counter" id="counter"></div>
+Kiedy
 
-  <div class="deck-wrap">
-    <div class="deck" id="deck"></div>
+Chcesz przyjsc na spotkanir grupy genzie?
 
-    <div class="end-screen" id="endScreen">
-      <div class="emoji">🎉🥳🎂</div>
-      <h1>Wszystkiego najlepszego, Gabryś!</h1>
-      <p>Przeleciałeś przez wszystkie 30 zdjęć. Koniec swipe'owania — dalej się nie da.<br><br>Bardzo Cię lubimy i mamy nadzieję, że ten rok będzie najlepszy ze wszystkich. 🎈</p>
-      <div class="hearts">❤️🧡💛</div>
-    </div>
-  </div>
+Hejka misu
 
-  <div class="controls" id="controls">
-    <button class="btn rewind" title="Cofnij">⟲</button>
-    <button class="btn nope" id="btnNope" title="Nie">✕</button>
-    <button class="btn star" title="Super like">★</button>
-    <button class="btn like" id="btnLike" title="Tak">♥</button>
-    <button class="btn boost" title="Boost">⚡</button>
-  </div>
-</div>
+Biedny
 
-<script>
-/* ==========================================================
-   GABRYSINDER — lokalny żart Tinder dla Gabrysia
-   Zdjęcia: pliki Z1.jpg ... Z30.jpg w TYM SAMYM folderze co ten plik HTML.
-   Opisy (bio): edytuj tablicę BIOS poniżej — po jednym opisie na zdjęcie,
-   w kolejności Z1, Z2, Z3... Możesz zostawić puste "" jeśli nie masz pomysłu,
-   wtedy poleci losowy głupi opis z DEFAULT_BIOS.
-   ========================================================== */
+Misu
 
-const TOTAL_PHOTOS = 30;
+Biedny
 
-// 👉 TU WPISZ SWOJE OPISY (jeden string na zdjęcie, w kolejności Z1..Z30).
-// Zostaw "" żeby użyć losowego domyślnego opisu.
-const BIOS = [
-  "", "", "", "", "", "", "", "", "", "",
-  "", "", "", "", "", "", "", "", "", "",
-  "", "", "", "", "", "", "", "", "", ""
-];
+Jutro o 12 pod złotymi
 
-// Domyślne głupie opisy — losowane gdy BIOS[i] jest puste
-const DEFAULT_BIOS = [
-  "lubi placki ziemniaczane bardziej niż ludzi",
-  "zawodowy szukacz pilota od TV",
-  "w wolnym czasie liczy kafelki na suficie",
-  "ekspert od parkowania pod krzywym kątem",
-  "jego róża życia to schabowy",
-  "wielokrotny finalista konkursu na najgłośniejsze ziewanie",
-  "potrafi zasnąć w każdej pozycji, nawet stojąc",
-  "hobby: otwieranie lodówki i patrzenie",
-  "ambicja: kiedyś zjeść cały tort sam",
-  "motto: 'zaraz wstaję' (nie wstaje)",
-  "kolekcjoner niedopasowanych skarpetek",
-  "zna się na wszystkim, sprawdzone przez nikogo",
-  "czarny pas w przynoszeniu jedzenia do łóżka",
-  "życiowy cel: znaleźć pilota bez klikania na fotel",
-  "był, widział, zapomniał o co chodziło",
-  "pro w wygrywaniu kłótni z kotem",
-  "kiedyś prawie wstał wcześniej niż w południe",
-  "jego CV to lista seriali obejrzanych w noc przed egzaminem",
-  "profesjonalny odkładacz spraw na jutro",
-  "zna 3 przepisy: kanapka, jajecznica i 'zamawiam'",
-  "rekordzista w chodzeniu do lodówki bez celu",
-  "fanklub liczy dokładnie tyle osób co go zna",
-  "potrafi się zgubić we własnym mieszkaniu",
-  "w innym życiu byłby zawodowym drzemaczem",
-  "jego alarm to sugestia, nie rozkaz",
-  "master ceremonii przy grillu, zero umiejętności kulinarnych",
-  "gdyby lenistwo było sportem, miałby złoty medal",
-  "jego plan na wieczór: 'zobaczymy'",
-  "zna wszystkie skróty klawiszowe, oprócz Ctrl+S do życia",
-  "wieczny kandydat na 'zaraz się za to biorę'"
-];
+Chyba sie zgubilem
 
-function bioFor(i){
-  const custom = BIOS[i] && BIOS[i].trim();
-  if(custom) return custom;
-  return DEFAULT_BIOS[i % DEFAULT_BIOS.length];
-}
+Juz nie masz tej cegły
 
-const deck = document.getElementById('deck');
-const counterEl = document.getElementById('counter');
-const endScreen = document.getElementById('endScreen');
-const controls = document.getElementById('controls');
-const btnLike = document.getElementById('btnLike');
-const btnNope = document.getElementById('btnNope');
+Czemu mnie tak nazywasz?
 
-let cards = [];
-let topIndex = TOTAL_PHOTOS - 1; // index in `cards` array of topmost card
-let swipedCount = 0;
+Juz nie masz tej cegły
 
-// build progress bar
-for(let i=0;i<TOTAL_PHOTOS;i++){
-  const seg = document.createElement('div');
-  seg.className = 'seg';
-  seg.dataset.i = i;
-  counterEl.appendChild(seg);
-}
-function updateProgress(){
-  const segs = counterEl.querySelectorAll('.seg');
-  segs.forEach((s,i)=>{
-    s.classList.toggle('done', i < swipedCount);
-  });
-}
+Bo coe lubie
 
-function buildCard(n){
-  // n = photo number 1..30
-  const card = document.createElement('div');
-  card.className = 'card';
-  card.dataset.n = n;
+O 23:58 blokuje mi sie telefon
 
-  const img = document.createElement('img');
-  img.src = `Z${n}.jpg`;
-  img.alt = `Zdjęcie ${n}`;
-  img.onerror = function(){
-    img.remove();
-    const fb = document.createElement('div');
-    fb.className = 'fallback';
-    fb.innerHTML = `<b>Brakuje pliku Z${n}.jpg</b>Wrzuć zdjęcie o tej nazwie<br>do folderu ze stroną.`;
-    card.prepend(fb);
-  };
-  card.appendChild(img);
+Nie mam duzo czasu zeby znalezc droge powrotna
 
-  const dots = document.createElement('div');
-  dots.className = 'dots';
-  dots.innerHTML = '<span class="active"></span>';
-  card.appendChild(dots);
+Przynajmiej fajny sie wydajedz
 
-  const likeStamp = document.createElement('div');
-  likeStamp.className = 'stamp like';
-  likeStamp.textContent = 'LIKE';
-  card.appendChild(likeStamp);
+Kurwa
 
-  const nopeStamp = document.createElement('div');
-  nopeStamp.className = 'stamp nope';
-  nopeStamp.textContent = 'NOPE';
-  card.appendChild(nopeStamp);
+Nie ufam ci
 
-  return card;
-}
+Przynajmiej fajny sie wydajedz
 
-function renderDeck(){
-  deck.innerHTML = '';
-  cards = [];
-  // create all cards, photo 1 on top visually is handled by z-index (last child on top)
-  for(let n=1;n<=TOTAL_PHOTOS;n++){
-    const c = buildCard(n);
-    c.style.zIndex = n;
-    deck.appendChild(c);
-    cards.push(c);
-  }
-  attachInteractions();
-}
+Jakie to ma znaczenie
 
-function attachInteractions(){
-  cards.forEach((card)=>{
-    let startX=0, startY=0, curX=0, curY=0, dragging=false;
+Przeciez my juz sie widzieliśmy
 
-    const likeStamp = card.querySelector('.stamp.like');
-    const nopeStamp = card.querySelector('.stamp.nope');
+Kurwa
 
-    function isTop(){
-      // top card = highest remaining card still in DOM with pointer-events
-      const remaining = Array.from(deck.children);
-      return remaining[remaining.length-1] === card;
-    }
+Wybacz
 
-    function pointerDown(e){
-      if(!isTop()) return;
-      dragging = true;
-      const pt = e.touches ? e.touches[0] : e;
-      startX = pt.clientX; startY = pt.clientY;
-      card.style.transition = 'none';
-    }
-    function pointerMove(e){
-      if(!dragging) return;
-      const pt = e.touches ? e.touches[0] : e;
-      curX = pt.clientX - startX;
-      curY = pt.clientY - startY;
-      const rot = curX / 18;
-      card.style.transform = `translate(${curX}px, ${curY}px) rotate(${rot}deg)`;
-      const opacity = Math.min(Math.abs(curX)/100, 1);
-      if(curX > 0){
-        likeStamp.style.opacity = opacity;
-        nopeStamp.style.opacity = 0;
-      } else {
-        nopeStamp.style.opacity = opacity;
-        likeStamp.style.opacity = 0;
-      }
-    }
-    function pointerUp(){
-      if(!dragging) return;
-      dragging = false;
-      card.style.transition = 'transform 0.35s ease, opacity 0.35s ease';
-      if(Math.abs(curX) > 100){
-        finishSwipe(card, curX > 0 ? 1 : -1);
-      } else {
-        card.style.transform = 'translate(0,0) rotate(0)';
-        likeStamp.style.opacity = 0;
-        nopeStamp.style.opacity = 0;
-      }
-      curX = 0; curY = 0;
-    }
+Nie ufam ci
 
-    card.addEventListener('mousedown', pointerDown);
-    window.addEventListener('mousemove', pointerMove);
-    window.addEventListener('mouseup', pointerUp);
-    card.addEventListener('touchstart', pointerDown, {passive:true});
-    card.addEventListener('touchmove', pointerMove, {passive:true});
-    card.addEventListener('touchend', pointerUp);
-  });
-}
+Idk smiezzny jestes i taki trch brainrot z cb
 
-function finishSwipe(card, direction){
-  card.style.transform = `translate(${direction*600}px, ${-40}px) rotate(${direction*30}deg)`;
-  card.style.opacity = '0';
-  swipedCount++;
-  updateProgress();
-  setTimeout(()=>{
-    card.remove();
-    if(swipedCount >= TOTAL_PHOTOS){
-      showEnd();
-    }
-  }, 320);
-}
+Idk smiezzny jestes i taki trch brainrot z cb
 
-function topCard(){
-  const remaining = Array.from(deck.children);
-  return remaining[remaining.length-1];
-}
+Nie zartuje
 
-function buttonSwipe(direction){
-  if(swipedCount >= TOTAL_PHOTOS) return;
-  const card = topCard();
-  if(!card) return;
-  card.style.transition = 'transform 0.35s ease, opacity 0.35s ease';
-  const stamp = card.querySelector(direction>0 ? '.stamp.like' : '.stamp.nope');
-  stamp.style.opacity = 1;
-  finishSwipe(card, direction);
-}
+No ale ja cie lubie na serio
 
-btnLike.addEventListener('click', ()=>buttonSwipe(1));
-btnNope.addEventListener('click', ()=>buttonSwipe(-1));
+Moze bylem jakos nie mam juz na to energii
 
-function showEnd(){
-  endScreen.classList.add('show');
-  controls.style.display = 'none';
-}
+Czemu?
 
-renderDeck();
-updateProgress();
+Hmm
 
-/* ===== unoszące się zdjęcia w tle: losowo czerwone lub zielone, wolno lecą w górę ===== */
-function initFloatingBg(){
-  const layer = document.getElementById('bgFloat');
-  const COUNT = 16;
-  for(let i=0;i<COUNT;i++){
-    const n = Math.floor(Math.random()*TOTAL_PHOTOS)+1;
-    const el = document.createElement('div');
-    const tint = Math.random() < 0.5 ? 'tint-red' : 'tint-green';
-    el.className = `float-photo ${tint}`;
+Czemu?
 
-    const size = 60 + Math.random()*90; // 60-150px
-    el.style.width = size+'px';
-    el.style.height = (size*1.3)+'px';
-    el.style.left = (Math.random()*100)+'vw';
+Chce sie od nich odizolowac najlepiej na tyle ile tylko dam rade
 
-    const duration = 26 + Math.random()*28; // 26-54s, wolno
-    const delay = -Math.random()*duration; // start w losowym momencie
-    el.style.animationDuration = duration+'s';
-    el.style.animationDelay = delay+'s';
-    el.style.setProperty('--dx', (Math.random()*80-40)+'px');
-    el.style.setProperty('--r0', (Math.random()*20-10)+'deg');
-    el.style.setProperty('--r1', (Math.random()*30-15)+'deg');
+Eh szkoda
 
-    const img = document.createElement('img');
-    img.src = `Z${n}.jpg`;
-    img.onerror = ()=> el.remove();
-    el.appendChild(img);
+Moge poczekac
 
-    layer.appendChild(el);
-  }
-}
-initFloatingBg();
-</script>
+Moge poczekac
+
+Nic nie wiesz
+
+Jak ci to wytlumaczyc
+
+Co?
+
+Ja wiem ze ci rodzice przeszukali telefon po tym jak powiedziałes ze jestes chłopakiem martyny czy cos takiego wiecej nie wiem
+
+No nie
+
+Czy ty na prawde nic nie wiesz?
+
+Dla ktorych przestalem sie z nimi spotykac i kontaktowac
+
+Oj to sorki
+
+Moze nie wiesz ale jestes jednym z powodow
+
+Kto ci to powiedzial?
+
+Ja wiem ze ci rodzice przeszukali telefon po tym jak powiedziałes ze jes…
+
+Ehh
+
+Oj to sorki
+
+Kto ci to powiedzial?
+
+Jak to?
+
+To nie jest prawda zdajesz sobie sprawe?
+
+Jak to?
+
+Okej ale dlaczego nie checsz sie spotkac
+
+Ale nie powiem ci tego
+
+Nikt nie bedzie lepiej wiedzial co sie stalo niz ja sam
+
+Zapytaj tych, dla ktorych wlasnie chciales miec ze mna kontakt
+
+No naprawde
+
+Nie wierze ze to jest twoja wlasna inicjatywa
+
+Mozemy nawet sami bo na serio lubie cie
+
+Zalezy co nazywasz zlym
+
+Jezu wierz mi ze na serio nie mam złych zamiarów
+
+No naprawde
+
+Nie wierze ze to jest twoja wlasna inicjatywa
+
+Nie chce probowac brzmieć madrze, ale na serio znam taktyki tamtych ludzi z ktorymi sie zadawalem i kojarze ze unikaja konfrontacji
+
+Em okej
+
+Martyna, kasia
+
+Co jacy tamci ludzie
+
+Bardzo mozliwe ze wlasnie dlatego do mnie piszesz
+
+Zablokowaly mnie przed cala sytuacja i jak probowalem do nich jakkolwiek cos powiedziec to zostalem jak nigdy wczesniej hejtowany
+
+Dobra mam pytanie co one ci zrobiły
+
+Oj słabo
+
+Zablokowaly mnie przed cala sytuacja i jak probowalem do nich jakkolwiek cos powiedziec to zostalem jak nigdy wczesniej hejtowany
+
+Nawet bardzo
+
+Oj słabo
+
+Wydawalo mi sie ze jestesmy znajomymi ale nigdy nie spodziewalem sie ze wbija mi noz w plecy
+
+Nie chce z nimi miec kontaktu
+
+Japierdole sorki za ten kcuk
+
+What&#x27;s the matter
+
+Bo kcuka ci przez przypadek wysłałem
+
+Mam slaby internet
+
+Co
+
+Japierdole sorki za ten kcuk
+
+Ja sie pytałem czemu cb nie odblokuja ale nie chciały mówi
+
+Zablokowaly mnie przed cala sytuacja i jak probowalem do nich jakkolwiek…
+
+Masz z nimi kontakt?
+
+Ja sie pytałem czemu cb nie odblokuja ale nie chciały mówi
+
+Nie mam energii do tych ludzi.
+
+Błagam nie blokuj mnie
+
+Ja nie wiem
+
+To sobie zapytaj
+
+Za duzo ludzi randomowo mnir blokowało
+
+Za duzo ludzi randomowo mnir blokowało
+
+Nie rozumiem
+
+Wiem jak to brzmi
+
+Naprawde chce sie sporkac z toba
+
+Chce się tylko dowiedzieć
+
+Nie potrzebuje znajomych zwlaszcza trzymajacych kontakt z tymi ludzmi
+
+Nie mam pojecia
+
+Czemu one kłamały
+
+Czego chcesz sie dowiedziec
+
+Na serio
+
+Chce się tylko dowiedzieć
+
+No
+
+Moze ci wypraly mozg o tej ich sekcie
+
+No
+
+Tobie?
+
+I o czym
+
+Przepraszam
+
+Pamietam ze jak niemalze na sile probowalem byc dla was zbiorowo mily na…
+
+No a wydajezz sie
+
+Sklonily cie ze nie jestem fajny
+
+Przepraszam
+
+Wiec odpuscilem
+
+To byles dla mnie top 1 cham
+
+Pamietam ze jak niemalze na sile probowalem byc dla was zbiorowo mily na tej calej grupie genzie
+
+No a wydajezz sie
+
+Nie wiem na serio
+
+Nie wiem na serio
+
+Dlaczego byles
+
+Idk głupi byłem
+
+Dlaczego?
+
+Dobrze w porzadku
+
+To druge raczej ale serio przepraszam
+
+Ktos cie do tego naklonil czy jakas proba zaimponowania im
+
+Po prostu nie wiem
+
+Dobrze w porzadku
+
+To druge raczej ale serio przepraszam
+
+Wiem ze mam strasznie duzo dystansu ale za duzo przezylem
+
+Po co?
+
+Okej
+
+Ale ja ci nic wiecej na ten temat nie powiem
+
+Lubie cie przynajmiej tak mi sie wydaje
+
+Po co?
+
+Cieszylem sie zyciem, bylem na najlepszych wakacjach do tej pory w moim zyciu. nie bylem zainteresowany probowaniem przylizac sie znowu tej grupie ludzi
+
+A chcesz sie spotkac sam na sam?
+
+Okej
+
+Wiem ale masz fajna aurę
+
+Zwlaszca od niej
+
+Wiem ale masz fajna aurę
+
+Prawie wcale sie do ciebie nie odzywalem
+
+Za co
+
+Faktycznie ona jest w porządku w porownaniu z jej towarzystwem
+
+Ja wole tosie bardziej
+
+Raczej staram sie unikac ludzi od martyny
+
+To nie sa w porzadku ludzie
+
+Ciebie troche tez
+
+Az mi jej szkoda
+
+Faktycznie ona jest w porządku w porownaniu z jej towarzystwem
+
+Ja wole tosie bardziej
+
+Z martyna i kasia tak
+
+Ty z nimi chodzisz do szkoły czy cos?
+
+Jak regularny z nimi masz kontakt
+
+Oj ty malo wiesz
+
+Z martyna i kasia tak
+
+Ty z nimi chodzisz do szkoły czy cos?
+
+Postaram sie ich unikac od wrzesnia
+
+W miare jest
+
+Kase?
+
+Wreszcie ojciec daje mi to czego od niego chcialem
+
+W miare jest
+
+Oj to zycze ci aby dla ciebie los był miły czy cos
+
+Jasne
+
+Uuu to da sie lepiej
+
+Lepiej
+
+Ja zyje wydawaniem piniedzy
+
+Jasne
+
+Uuu to da sie lepiej
+
+Lepiej
+
+Odzyskam to co zostalo mi odebrane
+
+Oj
+
+Oj to konto jest warte wiecej niz pieniadze
+
+To dobrze
+
+Oj
+
+Wreszcie postanowil mi je oddac
+
+Ojciec wzial i fizycznie zabral mi konto roblox wylogowal i pousuwal emaile itd
+
+Idk
+
+Wgl od kiedy masz telefon znowu
+
+Idk
+
+A czemu ja ci w ogole o tym mowie
+
+To duzo
+
+A jesli jest
+
+Biedul
+
+Jesli ci zalezy postaram sie za pare godzin jak mama bedzie spac wykrasc sie i odblokowac sobie telefon
+
+Biedul
+
+Ale za jakies 20 minut mi sie blokuje
+
+Mam go w tej chwili, na nokii nie da sie miec facebooka ani messengera
+
+?
+
+Ło jakie słodkie
+
+Okej dzięki wgl ze piszemy
+
+Wiciu Danowski</main>
 </body>
 </html>
